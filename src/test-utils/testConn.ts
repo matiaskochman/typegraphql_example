@@ -19,6 +19,5 @@ export const testConn = async (drop: boolean = false) => {
     //   "../entities/*.*"
     // ]
   });
-  console.log(entitiesPath);
   return conn;
 }

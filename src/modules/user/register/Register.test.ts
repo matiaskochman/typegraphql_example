@@ -1,6 +1,8 @@
 import { testConn } from "../../../test-utils/testConn";
 import { Connection } from "typeorm";
 import { gCall } from "../../../test-utils/gCall";
+import faker from 'faker';
+import { User } from "../../../entities/User";
 
 let conn: Connection; 
 
@@ -29,35 +31,39 @@ mutation Register($data: RegisterInputType!) {
 
 describe('Register', () => {
   it('create user ', async () => {
+
+    const user = {
+      firstName: faker.name.firstName(10),
+      lastName: faker.name.lastName(5),
+      email: faker.internet.email(),
+      password: faker.internet.password(7)
+
+    }
     const res = await gCall({
       source: registerMutation,
       variableValues: {
-        data: {
-          firstName: "testname",
-          lastName: "testlastname",
-          email: "testemail@email.com",
-          password: "testpassword"
-        }
+        data: user
       }
     })
-    console.log(res);
+
+    expect(res).toMatchObject(
+      {
+        data: {
+          register: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          }
+        }
+      }
+    );
+
+    const dbUser = await User.findOne({where: {email: user.email}});
+
+    expect(dbUser).toBeDefined();
+    expect(dbUser!.confirmed).toBeFalsy();
+    expect(dbUser!.firstName).toBe(user.firstName);
+
   });
 });
 
-// describe("Register", () => {
-//   it("create user", async () => {
-//     console.log(
-//       await gCall({
-//         source: registerMutation,
-//         variableValues: {
-//           data: {
-//             firstName: "bob",
-//             lastName: "bob2",
-//             email: "bob@bob.com",
-//             password: "asdfasdf"
-//           }
-//         }
-//       })
-//     );
-//   });
-// });
